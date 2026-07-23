@@ -114,8 +114,8 @@ body:has(.sc-body) {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-top: calc(env(safe-area-inset-top, 0px) + 14px);
-  padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  padding-top: calc(var(--tg-content-safe-area-inset-top, 0px) + 12px);
+  padding-bottom: calc(88px + var(--tg-content-safe-area-inset-bottom, 0px));
 }
 
 /* Gradient text */
@@ -486,12 +486,8 @@ body:has(.sc-body) {
 }
 
 .sc-content {
-  padding-top: max(
-    124px,
-    calc(env(safe-area-inset-top, 0px) + 100px),
-    calc(var(--tg-content-safe-area-inset-top, 0px) + 14px)
-  );
-  padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+  padding-top: calc(var(--tg-content-safe-area-inset-top, 0px) + 12px);
+  padding-bottom: calc(70px + var(--tg-content-safe-area-inset-bottom, 0px));
   scrollbar-width: none;
 }
 
