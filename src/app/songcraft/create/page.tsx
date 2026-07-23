@@ -739,7 +739,7 @@ export default function CreatePage() {
       <div className="sc-wizard-content" key={`${mode}-${step}`}>
         {mode === "rap" && step === 0 && (
           <>
-            <StepHeading title="Выберите звучание" text="Зададим основу аранжировки и подачи." />
+            <StepHeading title="Выберите звучание" text="С него начнём — от него зависит вся подача трека." />
             <div className="sc-choice-list">
               {RAP_STYLES.map((item) => (
                 <ChoiceButton key={item.id} item={item} selected={rapStyle === item.id} onClick={() => { setRapStyle(item.id); invalidateGeneratedDraft(); }} />
@@ -801,7 +801,7 @@ export default function CreatePage() {
 
         {mode === "gift" && step === 0 && (
           <>
-            <StepHeading title="Какой повод?" text="Он задаст тон и драматургию песни." />
+            <StepHeading title="Какой повод?" text="От него зависит настроение и о чём будет песня." />
             <div className="sc-choice-grid sc-occasion-grid">
               {OCCASIONS.map((item) => (
                 <ChoiceButton key={item.id} item={item} selected={occasion === item.id} compact onClick={() => { setOccasion(item.id); invalidateGeneratedDraft(); }} />
@@ -1235,7 +1235,7 @@ function OrderSummaryStep({
 
   return (
     <>
-      <StepHeading title="Состав заказа" text="Сначала проверьте наполнение. Оплата сформируется по итоговой сумме." />
+      <StepHeading title="Состав заказа" text="Проверьте, что входит. Оплата — по итоговой сумме внизу." />
       <div className="sc-order-base">
         <span className="sc-order-base-icon"><AudioLines size={22} /></span>
         <span><small>В заказ входит</small><strong>{SONG_OFFER.name}</strong><em>Разные тексты, хуки и аранжировки</em></span>

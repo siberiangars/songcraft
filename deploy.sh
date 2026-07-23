@@ -68,8 +68,15 @@ echo "═══ Распаковываем и перезапускаем Docker 
   tar xzf /tmp/songcraft-src.tar.gz
   rm -f /tmp/songcraft-src.tar.gz
   docker compose up -d --build --remove-orphans
-  sleep 8
-  docker compose ps"
+  echo '--- Проверяю готовность app ---'
+  ok=0
+  for i in \$(seq 1 20); do
+    code=\$(curl -s -o /dev/null -w '%{http_code}' 'http://127.0.0.1:3001/api/songcraft/health?shallow=1' || true)
+    if [ \"\$code\" = 200 ]; then ok=1; echo \"app healthy (HTTP 200), попытка \$i\"; break; fi
+    sleep 3
+  done
+  docker compose ps
+  if [ \"\$ok\" != 1 ]; then echo 'ОШИБКА ДЕПЛОЯ: app не отвечает 200 — откат не тронул старые данные'; docker compose logs app --tail=40 --no-color; exit 1; fi"
 
 rm -f /tmp/songcraft-src.tar.gz
 echo "═══ Готово ═══"

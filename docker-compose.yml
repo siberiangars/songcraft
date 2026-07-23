@@ -16,7 +16,7 @@ services:
       redis:
         condition: service_healthy
     restart: unless-stopped
-    command: sh -c "npx prisma db push && node scripts/ensure-songcraft-runtime.mjs && npm start"
+    command: sh -c "npx prisma migrate deploy && node scripts/ensure-songcraft-runtime.mjs && npm start"
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:3000/api/songcraft/health?shallow=1 >/dev/null || exit 1"]
       interval: 30s
