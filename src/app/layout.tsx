@@ -8,8 +8,8 @@ const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
 export const metadata: Metadata = {
-  title: "CRM Система",
-  description: "Полностью автоматизированная CRM система с ИИ агентом",
+  title: "SongCraft — песня в подарок",
+  description: "Персональные песни в подарок: ваша история, 3 версии трека за несколько минут",
   manifest: "/manifest.json",
 };
 

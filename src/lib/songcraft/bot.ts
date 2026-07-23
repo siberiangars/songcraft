@@ -248,8 +248,10 @@ function registerHandlers(bot: Bot) {
       } else if ("orderId" in payload) {
         const { default: prisma } = await import("@/lib/prisma");
         const order = await prisma.order.findUnique({ where: { id: payload.orderId } });
-        const plan = order ? PRICING[order.plan as keyof typeof PRICING] : null;
-        if (!order || order.status !== "PENDING" || !plan || query.total_amount !== plan.priceStars) {
+        // Сверяем с полной суммой заказа (тариф + допы), а не с ценой тарифа:
+        // order.amount хранится в копейках, 1 звезда = 1 рублю по нашему прайсу.
+        const expectedStars = order ? Math.floor(order.amount / 100) : 0;
+        if (!order || order.status !== "PENDING" || expectedStars <= 0 || query.total_amount !== expectedStars) {
           throw new Error("Заказ уже оплачен или сумма изменилась");
         }
       } else {

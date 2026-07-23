@@ -36,8 +36,9 @@ export async function processSuccessfulPayment(
   const order = await prisma.order.findUnique({ where: { id: orderId } });
   if (!order) throw new Error(`Order ${orderId} not found`);
 
-  const plan = PRICING[order.plan as PlanType];
-  if (!plan || amountStars !== plan.priceStars) {
+  // order.amount — полная сумма заказа в копейках (тариф + допы); 1 звезда = 1 ₽.
+  const expectedStars = Math.floor(order.amount / 100);
+  if (expectedStars <= 0 || amountStars !== expectedStars) {
     throw new Error(`Unexpected Stars amount for order ${orderId}`);
   }
 
