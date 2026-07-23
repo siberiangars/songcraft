@@ -55,13 +55,19 @@ echo "═══ Копируем на ${SSH_HOST}:${REMOTE_DIR} ═══"
 "${SCP[@]}" /tmp/songcraft-src.tar.gz "${SSH_HOST}:/tmp/songcraft-src.tar.gz"
 
 echo "═══ Распаковываем и перезапускаем Docker ═══"
+# ВАЖНО: удаляем управляемые каталоги с исходниками ПЕРЕД распаковкой,
+# иначе tar --overwrite оставляет устаревшие файлы (старый CRM-код и т.п.),
+# которые ломают Docker-сборку. База данных живёт в docker-томе sqlite_data,
+# а не в этих каталогах, поэтому её очистка не затрагивает.
+# Сборка идёт ДО пересоздания контейнеров (up --build), без отдельного down —
+# если сборка упадёт, старые контейнеры продолжат работать (нет простоя).
 "${SSH[@]}" "set -e
   mkdir -p ${REMOTE_DIR}
   cd ${REMOTE_DIR}
-  tar xzf /tmp/songcraft-src.tar.gz --overwrite
+  rm -rf src prisma public scripts services
+  tar xzf /tmp/songcraft-src.tar.gz
   rm -f /tmp/songcraft-src.tar.gz
-  docker compose down
-  docker compose up -d --build
+  docker compose up -d --build --remove-orphans
   sleep 8
   docker compose ps"
 
