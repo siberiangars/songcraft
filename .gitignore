@@ -1,0 +1,55 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# next.js
+.next/
+out/
+build/
+dist/
+.vercel
+
+# env & secrets — НИКОГДА не коммитить
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+id_*
+
+# databases & data
+*.db
+*.db-journal
+*.sqlite
+data/
+
+# logs
+*.log
+npm-debug.log*
+
+# binaries & junk
+*.exe
+*.tsbuildinfo
+next-env.d.ts
+/src/generated/prisma
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+OneDrive
+
+# agent/tooling artifacts
+.claude/
+.codex/
+.claire/
+.agents/
+.playwright-mcp/
+.playwright-cli/
+output/
+content/songcraft-channel/state/
+
+# misc local
+current_tunnel.txt

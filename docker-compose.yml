@@ -1,0 +1,77 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    env_file: .env
+    environment:
+      - DATABASE_URL=file:/app/data/dev.db
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=production
+    volumes:
+      - sqlite_data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    command: sh -c "npx prisma db push && node scripts/ensure-songcraft-runtime.mjs && npm start"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:3000/api/songcraft/health?shallow=1 >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 8s
+      retries: 3
+      start_period: 45s
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    environment:
+      - DATABASE_URL=file:/app/data/dev.db
+      - REDIS_URL=redis://redis:6379
+      - STRESS_SERVICE_URL=http://stress:8080
+      - NODE_ENV=production
+    volumes:
+      - sqlite_data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+      stress:
+        condition: service_healthy
+    restart: unless-stopped
+    stop_grace_period: 30s
+    command: npm run worker
+
+  stress:
+    build:
+      context: ./services/stress
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1
+      - OMP_NUM_THREADS=1
+      - MKL_NUM_THREADS=1
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  sqlite_data:
+  redis_data:

@@ -1,0 +1,16 @@
+node_modules
+.next
+.git
+.claude
+.claire
+.playwright-mcp
+OneDrive
+*.log
+*.tsbuildinfo
+cloudflared.exe
+current_tunnel.txt
+tunnel*.log
+dev*.log
+production*.log
+server*.log
+prisma/dev.db

@@ -1,0 +1,589 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── SongCraft Models ─────────────────────────────────────────────────────────
+
+model TgUser {
+  id            Int            @id @default(autoincrement())
+  telegramId    String         @unique
+  username      String?
+  firstName     String
+  lastName      String?
+  languageCode  String         @default("ru")
+  balance       Int            @default(0)
+  totalSpent    Int            @default(0)
+  freeCredits   Int            @default(3) // trial: 2 free tracks
+  referralCode  String         @unique @default(cuid())
+  referredById  Int?
+  referredBy    TgUser?        @relation("Referrals", fields: [referredById], references: [id])
+  referrals     TgUser[]       @relation("Referrals")
+  orders        Order[]
+  transactions  Transaction[]
+  voiceProfiles VoiceProfile[]
+  mediaAssets   MediaAsset[]
+  songDrafts    SongDraft[]
+  songActions   SongAction[]
+  marketingEvents MarketingEvent[]
+  acquisitionSource String?
+  acquisitionMedium String?
+  acquisitionCampaign String?
+  acquisitionContent String?
+  acquisitionTerm String?
+  acquisitionStartParam String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+// status: PENDING | PAID | PROCESSING | ENHANCING | GENERATING | COMPLETED | FAILED | REFUNDING | REFUNDED
+// plan:   BASIC | STANDARD | PREMIUM
+model Order {
+  id     Int    @id @default(autoincrement())
+  userId Int
+  user   TgUser @relation(fields: [userId], references: [id])
+  status String @default("PENDING")
+  plan   String
+  progress        Int     @default(0)
+  progressStage   String?
+  progressMessage String?
+  selectedSongId  Int?
+
+  recipientName          String
+  recipientPronunciation String?
+  trackTitle             String?
+  occasion               String
+  userText               String
+  enhancedLyrics         String?
+  approvedLyrics         String?
+  lyricsApprovedAt       DateTime?
+  draftId                String?
+  genre                  String
+  mood                   String
+  voiceType              String? // female | male
+  voiceProfileId         Int?
+  voiceProfile           VoiceProfile? @relation(fields: [voiceProfileId], references: [id])
+  style                  String?
+  tempo                  String        @default("medium")
+  language               String        @default("ru")
+  generationModel        String?
+  generationSettings     String?
+
+  addCover       Boolean @default(false)
+  addVideo       Boolean @default(false)
+  videoStyle     String?
+  videoPhotoTokens String?
+  giftPhotoToken String?
+  addSpokenIntro Boolean @default(false)
+  spokenIntroToken String?
+  coverUrl       String?
+  videoUrl       String?
+
+  songs Song[]
+
+  amount        Int
+  paymentId     String?
+  paymentSource String? // balance | telegram_stars
+  paidAt        DateTime?
+
+  sunoJobId    String?
+  errorMessage String?
+  retryCount   Int     @default(0)
+  hiddenAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Song {
+  id         Int     @id @default(autoincrement())
+  shareToken String? @unique @default(cuid())
+  orderId    Int
+  order      Order   @relation(fields: [orderId], references: [id])
+
+  sunoId           String
+  sunoTaskId       String?
+  title            String
+  audioUrl         String
+  imageUrl         String?
+  providerAudioUrl String?
+  providerImageUrl String?
+  wavUrl           String?
+  vocalUrl         String?
+  instrumentalUrl  String?
+  duration         Int?
+  fileId           String?
+  model            String?
+  stylePrompt      String?
+  negativeTags     String?
+  lyricsJson       String?
+  waveformJson     String?
+  qualityScore     Float?
+  variantIndex     Int          @default(0)
+  candidateIndex   Int          @default(0)
+  isSelected       Boolean      @default(true)
+  metadata         String?
+  actions          SongAction[]
+
+  createdAt DateTime @default(now())
+}
+
+model SongDraft {
+  id                String   @id @default(cuid())
+  userId            Int
+  user              TgUser   @relation(fields: [userId], references: [id])
+  mode              String   @default("gift")
+  briefJson         String
+  lyrics            String
+  title             String
+  stylePrompt       String
+  negativeTags      String?
+  pronunciationJson String?
+  revision          Int      @default(1)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([userId, createdAt])
+}
+
+model VoiceProfile {
+  id                     Int      @id @default(autoincrement())
+  userId                 Int
+  user                   TgUser   @relation(fields: [userId], references: [id])
+  name                   String
+  status                 String   @default("UPLOADED")
+  sourceMediaToken       String?
+  verificationMediaToken String?
+  validationTaskId       String?
+  validationPhrase       String?
+  voiceTaskId            String?
+  voiceId                String?  @unique
+  language               String   @default("ru")
+  style                  String?
+  singerSkillLevel       String   @default("intermediate")
+  consentAt              DateTime
+  errorMessage           String?
+  orders                 Order[]
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([userId, status])
+}
+
+model SongAction {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  user           TgUser   @relation(fields: [userId], references: [id])
+  songId         Int
+  song           Song     @relation(fields: [songId], references: [id])
+  type           String
+  status         String   @default("PENDING")
+  inputJson      String
+  providerTaskId String?
+  resultJson     String?
+  errorMessage   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([songId, type])
+}
+
+model MarketingEvent {
+  id         String   @id @default(cuid())
+  userId     Int?
+  user       TgUser?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  event      String
+  path       String?
+  source     String?
+  medium     String?
+  campaign   String?
+  content    String?
+  term       String?
+  startParam String?
+  referrer   String?
+  shareToken String?
+  metadata   String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([event, createdAt])
+  @@index([source, campaign])
+}
+
+model SunoTask {
+  id             Int      @id @default(autoincrement())
+  taskId         String   @unique
+  kind           String
+  orderId        Int?
+  actionId       Int?
+  voiceProfileId Int?
+  variantIndex   Int?
+  status         String   @default("PENDING")
+  callbackType   String?
+  responseJson   String?
+  errorMessage   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([orderId, status])
+  @@index([actionId, status])
+  @@index([voiceProfileId, status])
+}
+
+model MediaAsset {
+  id          Int      @id @default(autoincrement())
+  token       String   @unique @default(cuid())
+  userId      Int?
+  user        TgUser?  @relation(fields: [userId], references: [id])
+  kind        String
+  storagePath String   @unique
+  filename    String
+  mimeType    String
+  size        Int
+  originalUrl String?
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@index([userId, kind])
+}
+
+// type: PAYMENT | REFUND | REFERRAL_BONUS | ADMIN_CREDIT
+model Transaction {
+  id          Int      @id @default(autoincrement())
+  externalId  String?  @unique
+  userId      Int
+  user        TgUser   @relation(fields: [userId], references: [id])
+  type        String
+  amount      Int
+  description String
+  orderId     Int?
+  metadata    String?
+  createdAt   DateTime @default(now())
+}
+
+// ─── Legacy CRM Models ────────────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  password      String?
+  role          String    @default("OPERATOR")
+  avatar        String?
+  phone         String?
+  department    String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  deals         Deal[]
+  tasks         Task[]         @relation("TaskAssignee")
+  callLogs      CallLog[]
+  messages      Message[]
+  activities    Activity[]
+  notifications Notification[]
+  leads         Lead[]
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Company {
+  id            String   @id @default(cuid())
+  name          String
+  inn           String?  @unique
+  kpp           String?
+  ogrn          String?
+  legalAddress  String?
+  actualAddress String?
+  phone         String?
+  email         String?
+  website       String?
+  industry      String?
+  description   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  contacts   Contact[]
+  deals      Deal[]
+  activities Activity[]
+}
+
+model Contact {
+  id          String    @id @default(cuid())
+  firstName   String
+  lastName    String
+  middleName  String?
+  phone       String?
+  email       String?
+  position    String?
+  department  String?
+  birthday    DateTime?
+  socialLinks String?
+  notes       String?
+  companyId   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  company    Company?   @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  deals      Deal[]
+  messages   Message[]
+  callLogs   CallLog[]
+  activities Activity[]
+  fullName   String     @default("")
+}
+
+model Deal {
+  id                String    @id @default(cuid())
+  title             String
+  description       String?
+  amount            Float?
+  currency          String    @default("RUB")
+  stage             String    @default("NEW")
+  probability       Int       @default(0)
+  source            String?
+  expectedCloseDate DateTime?
+  actualCloseDate   DateTime?
+  lostReason        String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  contactId  String?
+  contact    Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  companyId  String?
+  company    Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  assigneeId String?
+  assignee   User?    @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
+
+  tasks        Task[]
+  callLogs     CallLog[]
+  messages     Message[]
+  activities   Activity[]
+  dealProducts DealProduct[]
+}
+
+model DealProduct {
+  id        String @id @default(cuid())
+  dealId    String
+  productId String
+  quantity  Int    @default(1)
+  price     Float
+
+  deal    Deal    @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([dealId, productId])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  sku         String   @unique
+  price       Float
+  currency    String   @default("RUB")
+  category    String?
+  unit        String   @default("шт")
+  inStock     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  dealProducts DealProduct[]
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  dueDate     DateTime?
+  priority    String    @default("MEDIUM")
+  status      String    @default("TODO")
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  dealId     String?
+  deal       Deal?      @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  assigneeId String?
+  assignee   User?      @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  activities Activity[]
+}
+
+model CallLog {
+  id           String    @id @default(cuid())
+  callId       String?   @unique
+  from         String
+  to           String
+  direction    String
+  status       String
+  duration     Int       @default(0)
+  recordingUrl String?
+  startTime    DateTime
+  endTime      DateTime?
+  notes        String?
+  createdAt    DateTime  @default(now())
+
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  dealId    String?
+  deal      Deal?    @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model Message {
+  id          String    @id @default(cuid())
+  content     String
+  direction   String
+  channel     String
+  status      String    @default("SENT")
+  externalId  String?
+  from        String
+  to          String
+  subject     String?
+  attachments String?
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  contactId      String?
+  contact        Contact?      @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  dealId         String?
+  deal           Deal?         @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  userId         String?
+  user           User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  leadId         String?
+  lead           Lead?         @relation(fields: [leadId], references: [id], onDelete: SetNull)
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  type        String
+  description String
+  metadata    String?
+  createdAt   DateTime @default(now())
+
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  dealId    String?
+  deal      Deal?    @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  taskId    String?
+  task      Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  leadId    String?
+  lead      Lead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  title     String
+  message   String
+  type      String
+  read      Boolean   @default(false)
+  readAt    DateTime?
+  link      String?
+  createdAt DateTime  @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Settings {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Lead {
+  id         String  @id @default(cuid())
+  name       String
+  phone      String?
+  email      String?
+  telegramId String?
+  whatsappId String?
+  source     String  @default("TELEGRAM")
+  status     String  @default("NEW")
+  stage      String  @default("INIT")
+  score      Int     @default(0)
+  notes      String?
+  metadata   String?
+
+  ownerId       String?
+  owner         User?          @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  conversations Conversation[]
+  messages      Message[]
+  activities    Activity[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Conversation {
+  id        String    @id @default(cuid())
+  leadId    String
+  lead      Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  channel   String
+  status    String    @default("ACTIVE")
+  messages  Message[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model AIAgentConfig {
+  id            String   @id @default(cuid())
+  name          String   @default("Default Agent")
+  isActive      Boolean  @default(true)
+  telegramToken String?
+  openaiKey     String?
+  systemPrompt  String?
+  scenarios     String?
+  settings      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
