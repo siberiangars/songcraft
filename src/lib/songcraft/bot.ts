@@ -10,7 +10,7 @@ import { ProxyAgent } from "proxy-agent";
 const BOT_INFO = {
   id: 8207343893,
   is_bot: true as const,
-  first_name: "ТВОЙ ТРЕК",
+  first_name: "SongCraft",
   username: "v3techtrackbot",
   can_join_groups: true,
   can_read_all_group_messages: false,
@@ -233,98 +233,6 @@ function registerHandlers(bot: Bot) {
     await ctx.reply(helpText(), { parse_mode: "Markdown", reply_markup: helpKeyboard() });
   });
 
-  bot.on("pre_checkout_query", async (ctx) => {
-    try {
-      const query = ctx.preCheckoutQuery;
-      const payload = JSON.parse(query.invoice_payload) as
-        | { orderId: number }
-        | { kind: "TOPUP"; amountKopeks: number };
-
-      if ("kind" in payload && payload.kind === "TOPUP") {
-        const expectedStars = Math.floor(Number(payload.amountKopeks || 0) / 100);
-        if (expectedStars <= 0 || query.total_amount !== expectedStars) {
-          throw new Error("Некорректная сумма пополнения");
-        }
-      } else if ("orderId" in payload) {
-        const { default: prisma } = await import("@/lib/prisma");
-        const order = await prisma.order.findUnique({ where: { id: payload.orderId } });
-        // Сверяем с полной суммой заказа (тариф + допы), а не с ценой тарифа:
-        // order.amount хранится в копейках, 1 звезда = 1 рублю по нашему прайсу.
-        const expectedStars = order ? Math.floor(order.amount / 100) : 0;
-        if (!order || order.status !== "PENDING" || expectedStars <= 0 || query.total_amount !== expectedStars) {
-          throw new Error("Заказ уже оплачен или сумма изменилась");
-        }
-      } else {
-        throw new Error("Неизвестный платеж");
-      }
-
-      await ctx.answerPreCheckoutQuery(true);
-    } catch (error) {
-      await ctx.answerPreCheckoutQuery(false, {
-        error_message: error instanceof Error ? error.message : "Платеж отклонен",
-      });
-    }
-  });
-
-  bot.on("message:successful_payment", async (ctx) => {
-    const payment = ctx.message.successful_payment;
-    try {
-      const payload = JSON.parse(payment.invoice_payload) as
-        | { orderId: number }
-        | { kind: "TOPUP"; topupToken: string; amountKopeks: number };
-
-      if ("kind" in payload && payload.kind === "TOPUP") {
-        const from = ctx.from;
-        if (!from) return;
-        const user = await getOrCreateUser({ id: from.id, first_name: from.first_name });
-        const topupAmount = Math.max(0, Number(payload.amountKopeks || 0));
-        if (topupAmount > 0) {
-          const expectedStars = Math.floor(topupAmount / 100);
-          if (payment.total_amount !== expectedStars) {
-            throw new Error("Unexpected Stars amount for balance topup");
-          }
-          const { default: prisma } = await import("@/lib/prisma");
-          const externalId = `stars-topup:${payment.telegram_payment_charge_id}`;
-          try {
-            await prisma.$transaction(async (tx) => {
-              const exists = await tx.transaction.findUnique({ where: { externalId } });
-              if (exists) return;
-              await tx.tgUser.update({
-                where: { id: user.id },
-                data: { balance: { increment: topupAmount } },
-              });
-              await tx.transaction.create({
-                data: {
-                  externalId,
-                  userId: user.id,
-                  type: "PAYMENT",
-                  amount: topupAmount,
-                  description: `Stars topup ${Math.floor(topupAmount / 100)} RUB`,
-                  metadata: `topup:stars:${payload.topupToken}`,
-                },
-              });
-            });
-          } catch (error) {
-            if ((error as { code?: string }).code !== "P2002") throw error;
-          }
-        }
-        await ctx.reply(`✅ Баланс пополнен на ${Math.floor(topupAmount / 100)} ₽`);
-        return;
-      }
-
-      if (!("orderId" in payload)) {
-        throw new Error("Unknown payment payload");
-      }
-      const { processSuccessfulPayment } = await import("./payment.service");
-      const { enqueueGeneration } = await import("./queue");
-      await processSuccessfulPayment(payload.orderId, payment.telegram_payment_charge_id, payment.total_amount);
-      await enqueueGeneration(payload.orderId);
-      await ctx.reply("✅ Оплата прошла. Начинаем создавать твой трек.");
-    } catch (err) {
-      logger.error("Payment error", { err: String(err) });
-      await ctx.reply("❌ Ошибка платежа. Напишите в поддержку: @helpv3techbot");
-    }
-  });
 }
 
 export async function processUpdate(update: object): Promise<void> {

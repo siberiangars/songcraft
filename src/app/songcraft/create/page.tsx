@@ -36,7 +36,7 @@ import {
   Zap,
 } from "lucide-react";
 import { readTelegramInitData, useTelegram } from "@/hooks/useTelegram";
-import { ORDER_ADDONS, PRICING, PlanType, SONG_OFFER } from "@/lib/songcraft/config";
+import { ORDER_ADDONS, SONG_OFFER } from "@/lib/songcraft/config";
 import { SpokenIntroRecorder } from "@/components/songcraft/SpokenIntroRecorder";
 import { GiftPhotoUploader } from "@/components/songcraft/GiftPhotoUploader";
 import {
@@ -642,8 +642,10 @@ export default function CreatePage() {
           voiceProfileId: voiceProfileId ?? undefined,
           addCover,
           giftPhotoToken: addCover ? giftPhotoToken || undefined : undefined,
-          addVideo: false,
-          addSpokenIntro: false,
+          addVideo,
+          videoPhotoTokens: addVideo ? videoPhotoTokens : undefined,
+          addSpokenIntro,
+          spokenIntroToken: addSpokenIntro ? spokenIntroToken || undefined : undefined,
         }),
       });
       const data = await response.json();
@@ -1225,7 +1227,11 @@ function OrderSummaryStep({
   setSpokenIntroToken: (value: string | null) => void;
   submit: () => void;
 }) {
-  const total = SONG_OFFER.price + (addCover ? ORDER_ADDONS.cover.price : 0);
+  const total =
+    SONG_OFFER.price +
+    (addCover ? ORDER_ADDONS.cover.price : 0) +
+    (addVideo ? ORDER_ADDONS.video.price : 0) +
+    (addSpokenIntro ? ORDER_ADDONS.spokenIntro.price : 0);
 
   return (
     <>
@@ -1244,7 +1250,7 @@ function OrderSummaryStep({
       <div className="sc-addon-list compact">
         <button type="button" className={`sc-addon-row ${addCover ? "selected" : ""}`} onClick={() => setAddCover(!addCover)}>
           <span className="sc-addon-icon"><ImageIcon size={20} /></span>
-          <span><strong>{ORDER_ADDONS.cover.name}</strong><small>1 фото клиента станет обложкой трека и страницы подарка</small></span>
+          <span><strong>{ORDER_ADDONS.cover.name}</strong><small>1 фото станет обложкой трека и страницы подарка</small></span>
           <b>+{ORDER_ADDONS.cover.price} ₽</b>
           <span className="sc-addon-check">{addCover && <Check size={14} />}</span>
         </button>
@@ -1253,6 +1259,34 @@ function OrderSummaryStep({
             initData={initData}
             token={giftPhotoToken}
             onChange={setGiftPhotoToken}
+          />
+        )}
+
+        <button type="button" className={`sc-addon-row ${addSpokenIntro ? "selected" : ""}`} onClick={() => setAddSpokenIntro(!addSpokenIntro)}>
+          <span className="sc-addon-icon"><Mic2 size={20} /></span>
+          <span><strong>{ORDER_ADDONS.spokenIntro.name}</strong><small>Запишите поздравление голосом, оно войдёт в начало трека</small></span>
+          <b>+{ORDER_ADDONS.spokenIntro.price} ₽</b>
+          <span className="sc-addon-check">{addSpokenIntro && <Check size={14} />}</span>
+        </button>
+        {addSpokenIntro && (
+          <SpokenIntroRecorder
+            initData={initData}
+            token={spokenIntroToken}
+            onUploaded={setSpokenIntroToken}
+          />
+        )}
+
+        <button type="button" className={`sc-addon-row ${addVideo ? "selected" : ""}`} onClick={() => setAddVideo(!addVideo)}>
+          <span className="sc-addon-icon"><Video size={20} /></span>
+          <span><strong>{ORDER_ADDONS.video.name}</strong><small>Загрузите 3–12 фото — соберём клип под вашу песню</small></span>
+          <b>+{ORDER_ADDONS.video.price} ₽</b>
+          <span className="sc-addon-check">{addVideo && <Check size={14} />}</span>
+        </button>
+        {addVideo && (
+          <SlideshowPhotoUploader
+            initData={initData}
+            tokens={videoPhotoTokens}
+            onChange={setVideoPhotoTokens}
           />
         )}
       </div>
@@ -1276,49 +1310,6 @@ function OrderSummaryStep({
       <div className="sc-plan-quality-note">
         <FilePenLine size={17} />
         <span>Текст и состав заказа сохранены. Генерация начнется только после подтверждения оплаты.</span>
-      </div>
-    </>
-  );
-}
-
-function PlanStep({
-  error,
-  submitting,
-  ownVoice,
-  submit,
-}: {
-  error: string;
-  submitting: boolean;
-  ownVoice: boolean;
-  submit: (plan: PlanType) => void;
-}) {
-  const plans = Object.entries(PRICING) as [PlanType, (typeof PRICING)[PlanType]][];
-  return (
-    <>
-      <StepHeading title="Выберите формат" text="Каждая версия получает отдельный текстовый хук и лучший дубль." />
-      {ownVoice && <div className="sc-voice-plan-note"><Mic2 size={16} /> Собственный голос включен - доступен Voice Pro.</div>}
-      {error && <div className="sc-error-banner">{error}</div>}
-      <div className="sc-plan-list sc-create-plans">
-        {plans.map(([id, plan]) => {
-          const disabled = submitting || (ownVoice && id !== "PREMIUM");
-          const featured = id === "STANDARD";
-          return (
-            <button key={id} className={featured ? "featured" : ""} disabled={disabled} onClick={() => submit(id)}>
-              <span>
-                <strong>{plan.name}</strong>
-                <small>{plan.variantsCount} версии - {plan.wav ? "MP3 + WAV" : "MP3"}{plan.stems ? " + дорожки" : ""}</small>
-              </span>
-              <span className="sc-plan-price">
-                {submitting && !disabled ? <LoaderCircle className="sc-spin" size={17} /> : null}
-                {plan.price} ₽ <ArrowRight size={17} />
-              </span>
-            </button>
-          );
-        })}
-      </div>
-      <div className="sc-plan-quality-note">
-        <FilePenLine size={17} />
-        <span>Текст уже сохранен. После оплаты начнется только музыкальная часть.</span>
       </div>
     </>
   );

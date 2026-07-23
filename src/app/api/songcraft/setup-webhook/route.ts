@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     body: JSON.stringify({
       url: webhookUrl,
       secret_token: TELEGRAM_WEBHOOK_SECRET(),
-      allowed_updates: ["message", "callback_query", "pre_checkout_query"],
+      allowed_updates: ["message", "callback_query"],
     }),
   });
 

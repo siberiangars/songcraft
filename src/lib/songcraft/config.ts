@@ -5,7 +5,6 @@ export const PRICING = {
   BASIC: {
     name: "Старт",
     price: 199,
-    priceStars: 199,
     description: "2 музыкальные версии и сильный текст",
     features: [
       "2 версии трека",
@@ -25,7 +24,6 @@ export const PRICING = {
   STANDARD: {
     name: "Pro",
     price: 290,
-    priceStars: 290,
     description: "3 продюсерские версии с разными хуками",
     features: [
       "3 самостоятельные версии",
@@ -47,7 +45,6 @@ export const PRICING = {
   PREMIUM: {
     name: "Voice Pro",
     price: 399,
-    priceStars: 399,
     description: "4 версии, собственный голос и студийные файлы",
     features: [
       "4 самостоятельные версии",
@@ -126,7 +123,7 @@ export function env(key: string, fallback = ""): string {
 export const BOT_TOKEN = () => env("BOT_TOKEN");
 export const BOT_USERNAME = () => env("BOT_USERNAME", "v3techtrackbot").replace(/^@/, "");
 export const ANTHROPIC_API_KEY = () => env("ANTHROPIC_API_KEY");
-export const ANTHROPIC_MODEL = () => env("ANTHROPIC_MODEL", "claude-sonnet-4-6");
+export const ANTHROPIC_MODEL = () => env("ANTHROPIC_MODEL", "claude-sonnet-5");
 export const DEEPSEEK_API_KEY = () => env("DEEPSEEK_API_KEY");
 export const DEEPSEEK_API_URL = () =>
   env("DEEPSEEK_API_URL", "https://api.deepseek.com/anthropic").replace(/\/$/, "");
@@ -149,7 +146,6 @@ export const REDIS_URL = () => env("REDIS_URL", "redis://localhost:6379");
 export const PUBLIC_BASE_URL = () => env("PUBLIC_BASE_URL", env("NEXTAUTH_URL", "http://localhost:3000")).replace(/\/$/, "");
 export const MEDIA_STORAGE_DIR = () => env("MEDIA_STORAGE_DIR", "/app/data/songcraft-media");
 export const MAX_AUDIO_UPLOAD_MB = () => Number(env("MAX_AUDIO_UPLOAD_MB", "25"));
-export const PAYMENT_PROVIDER_TOKEN = () => env("PAYMENT_PROVIDER_TOKEN");
 export const TELEGRAM_WEBHOOK_SECRET = () => env("TELEGRAM_WEBHOOK_SECRET");
 export const YOOKASSA_SHOP_ID = () => env("YOOKASSA_SHOP_ID");
 export const YOOKASSA_SECRET_KEY = () => env("YOOKASSA_SECRET_KEY");
