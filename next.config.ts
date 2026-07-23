@@ -4,6 +4,10 @@ import path from "path";
 const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
+    resolveAlias: {
+      "zustand/vanilla": "./node_modules/zustand/vanilla.js",
+      "zustand/react": "./node_modules/zustand/react.js",
+    },
   },
 
   images: {
@@ -14,7 +18,7 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  serverExternalPackages: ["grammy", "bullmq", "ioredis", "winston"],
+  serverExternalPackages: ["grammy", "bullmq", "ioredis", "winston", "@anthropic-ai/sdk", "node-fetch"],
 
   // Required headers for Telegram Mini App
   async headers() {
