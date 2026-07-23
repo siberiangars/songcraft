@@ -48,7 +48,6 @@ tar czf /tmp/songcraft-src.tar.gz \
   tsconfig.json \
   tsconfig.worker.json \
   next.config.ts \
-  tsconfig-paths-register.js \
   Dockerfile \
   docker-compose.yml
 
