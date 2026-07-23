@@ -391,9 +391,9 @@ export default function OrderStatusPage({ params }: { params: Promise<{ id: stri
           <section className="sc-track-ready-note">
             <span><CheckCircle2 size={20} /></span>
             <div>
-              <small>??????? ?????????</small>
-              <strong>???? ??? ?????</strong>
-              <p>??? ????? ???????, ??????? ??? ????????? ????? ?????? ? ?????? ????. ?????????????? ????????? ???? ? ?????? ?? ???????.</p>
+              <small>Трек выбран</small>
+              <strong>Ваш трек готов</strong>
+              <p>Трек зафиксирован и готов к выдаче. Ниже — дополнительные материалы, которые можно оформить прямо сейчас. Оплата отдельным платежом при выборе.</p>
             </div>
           </section>
 
@@ -401,17 +401,17 @@ export default function OrderStatusPage({ params }: { params: Promise<{ id: stri
             <div className="sc-addons-head">
               <span><Sparkles size={18} /></span>
               <div>
-                <small>?? ???????</small>
-                <strong>???????? ?????????? ? ???????</strong>
-                <p>????? ???????? ?????? ??????? ???? ??? ???????? ???? ?? ?????. ??? ???? ?? ????: ?? ????-??????? ?? ?????.</p>
+                <small>По желанию</small>
+                <strong>Добавьте что-то особенное</strong>
+                <p>Живой голос в начало, обложка для подарка или клип из ваших фото. Всё в один шаг — без лишних ожиданий.</p>
               </div>
             </div>
 
             <div className="sc-addon-list compact">
               <button type="button" className={`sc-addon-row ${addCover ? "selected" : ""}`} onClick={() => setAddCover((value) => !value)}>
                 <span className="sc-addon-icon"><ImageIcon size={20} /></span>
-                <span><strong>{ORDER_ADDONS.cover.name}</strong><small>???????????: 1 ???? ?????? ???????? ????? ? ???????? ???????</small></span>
-                <b>+{ORDER_ADDONS.cover.price} ?</b>
+                <span><strong>{ORDER_ADDONS.cover.name}</strong><small>Квадратное изображение для публикации с именем получателя</small></span>
+                <b>+{ORDER_ADDONS.cover.price} ₽</b>
                 <span className="sc-addon-check">{addCover && <Check size={14} />}</span>
               </button>
               {addCover && (
@@ -424,8 +424,8 @@ export default function OrderStatusPage({ params }: { params: Promise<{ id: stri
 
               <button type="button" className={`sc-addon-row ${addSpokenIntro ? "selected" : ""}`} onClick={() => setAddSpokenIntro((value) => !value)}>
                 <span className="sc-addon-icon"><Mic2 size={20} /></span>
-                <span><strong>{ORDER_ADDONS.spokenIntro.name}</strong><small>???????????: ???????? ?????? ???????????? ????? ???????</small></span>
-                <b>+{ORDER_ADDONS.spokenIntro.price} ?</b>
+                <span><strong>{ORDER_ADDONS.spokenIntro.name}</strong><small>Ваш голос в начале трека перед музыкальным вступлением</small></span>
+                <b>+{ORDER_ADDONS.spokenIntro.price} ₽</b>
                 <span className="sc-addon-check">{addSpokenIntro && <Check size={14} />}</span>
               </button>
               {addSpokenIntro && (
@@ -434,8 +434,8 @@ export default function OrderStatusPage({ params }: { params: Promise<{ id: stri
 
               <button type="button" className={`sc-addon-row ${addVideo ? "selected" : ""}`} onClick={() => setAddVideo((value) => !value)}>
                 <span className="sc-addon-icon"><Video size={20} /></span>
-                <span><strong>{ORDER_ADDONS.video.name}</strong><small>???????????: ????-???????? ?? ????? ???? ??? ??????? ????</small></span>
-                <b>+{ORDER_ADDONS.video.price} ?</b>
+                <span><strong>{ORDER_ADDONS.video.name}</strong><small>Клип-слайдшоу из ваших фото под выбранный трек</small></span>
+                <b>+{ORDER_ADDONS.video.price} ₽</b>
                 <span className="sc-addon-check">{addVideo && <Check size={14} />}</span>
               </button>
               {addVideo && (
@@ -451,7 +451,7 @@ export default function OrderStatusPage({ params }: { params: Promise<{ id: stri
               onClick={() => void submitAddons()}
             >
               {addonsBusy ? <LoaderCircle className="sc-spin" size={17} /> : <CheckCircle2 size={17} />}
-              {addonsTotal > 0 ? `???????? ????????? ???? ?? ${addonsTotal.toLocaleString("ru-RU")} ?` : "???? ?????????????: ????????, ???? ?????"}
+              {addonsTotal > 0 ? `Оформить дополнения за ${addonsTotal.toLocaleString("ru-RU")} ₽` : "Ничего не выбрано: отметьте выше"}
             </button>
           </section>
         </>

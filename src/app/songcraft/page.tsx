@@ -59,9 +59,9 @@ export default function HomePage() {
       <section className="sc-home-hero" aria-label="SongCraft">
         <img src="/songcraft-hero-neon-cut.png" alt="" />
         <div className="sc-home-hero-copy">
-          <span>Песня в подарок</span>
-          <h2>Создайте трек, который тронет человека</h2>
-          <p>Расскажите пару деталей, а сервис подготовит 3 версии с разным звучанием.</p>
+          <span>Персональная песня в подарок</span>
+          <h2>Трек, который тронет человека</h2>
+          <p>Расскажите пару деталей — получите 3 версии с разным звучанием.</p>
         </div>
       </section>
 
@@ -99,18 +99,18 @@ export default function HomePage() {
       <section className="sc-home-guide">
         <div className="sc-section-heading"><h2>Как получить сильный трек</h2></div>
         <div className="sc-guide-steps">
-          <div><span><MessageSquareText size={18} /></span><p><strong>Дайте живые детали</strong><small>Фраза, привычка, место или момент, который узнает только ваш человек.</small></p></div>
-          <div><span><Sparkles size={18} /></span><p><strong>Скажите главное</strong><small>Что он должен почувствовать и какую мысль унести после припева.</small></p></div>
-          <div><span><Mic2 size={18} /></span><p><strong>Проверьте имя и подачу</strong><small>Укажите ударение, голос и настроение. Текст можно поправить до оплаты.</small></p></div>
+          <div><span><MessageSquareText size={18} /></span><p><strong>Дайте живые детали</strong><small>Место, привычка или фраза, которую знает только ваш человек — вот что делает трек настоящим.</small></p></div>
+          <div><span><Sparkles size={18} /></span><p><strong>Скажите самое важное</strong><small>Что он должен почувствовать? Один честный ответ — и текст выйдет живым, а не шаблонным.</small></p></div>
+          <div><span><Mic2 size={18} /></span><p><strong>Выберите лучшую версию</strong><small>Три трека с разным звучанием. Слушайте, сравнивайте, выбирайте — это ваш финальный результат.</small></p></div>
         </div>
       </section>
 
       <section className="sc-viral-card">
         <span><Gift size={20} /></span>
         <div>
-          <small>Подарок работает сам</small>
-          <strong>Получатель увидит аккуратную страницу трека</strong>
-          <p>В ней есть подпись SongCraft и кнопка “Создать свой трек”, а за приглашенного друга вы получите 200 ₽ после его первого заказа.</p>
+          <small>Трек становится подарком</small>
+          <strong>Ссылку можно сразу отправить</strong>
+          <p>Получатель откроет страницу трека прямо в Telegram. Если захочет свой — вы получите 200 ₽ на счёт после его первого заказа.</p>
         </div>
         <button type="button" onClick={() => { trackEvent("referral_cta_click", { place: "home_viral_card" }); window.location.href = "/songcraft/partners"; }}>
           Пригласить

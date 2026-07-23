@@ -114,7 +114,7 @@ body:has(.sc-body) {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-top: calc(env(safe-area-inset-top, 0px) + 86px);
+  padding-top: calc(env(safe-area-inset-top, 0px) + 14px);
   padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
 }
 
