@@ -28,6 +28,16 @@ export function fromSileroStress(value: string): string {
   return value.replace(/\+([АЕЁИОУЫЭЮЯаеёиоуыэюя])/g, `$1${ACUTE}`).normalize("NFC");
 }
 
+// Suno распознаёт ударение как ЗАГЛАВНУЮ ударную гласную (зАмок vs замОк) — это
+// документированный и рабочий способ управления ударением для русского, в т.ч. в
+// середине строки. Комбинирующий акут U+0301 Suno игнорирует, поэтому в лирику для
+// Suno стресс-маркеры Silero (+гласная) кладём именно как заглавную гласную.
+export function sunoStressFromSilero(value: string): string {
+  return value
+    .replace(/\+([аеёиоуыэюяАЕЁИОУЫЭЮЯ])/g, (_match, vowel: string) => vowel.toUpperCase())
+    .normalize("NFC");
+}
+
 function uppercaseHintToSilero(value: string): string | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
@@ -86,7 +96,7 @@ export async function accentRussianLyrics(input: AccentLyricsInput): Promise<str
     if (!response.ok) throw new Error(`stress service returned ${response.status}`);
 
     const payload = (await response.json()) as StressServiceResponse;
-    const accented = fromSileroStress(payload.text ?? "");
+    const accented = sunoStressFromSilero(payload.text ?? "");
     if (!responseLooksSafe(input.lyrics, accented)) {
       throw new Error("stress service changed lyrics structure");
     }

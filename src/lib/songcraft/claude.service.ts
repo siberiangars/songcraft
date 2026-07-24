@@ -35,7 +35,14 @@ function toAnthropicRequest(
   return {
     ...rest,
     model: ANTHROPIC_MODEL(),
-    thinking: { type: "disabled" },
+    // Adaptive thinking: модель реально выполняет «молча проверь рифму/склонение/метр»,
+    // чего прямо требуют промпты — главный рычаг качества текста на Sonnet 5.
+    // (budget_tokens на sonnet-5 запрещён — 400; disabled душит внутреннюю проверку;
+    // adaptive — единственный рабочий режим размышления.) Тип не описан в SDK 0.39.0,
+    // но runtime API принимает его для sonnet-5.
+    thinking: { type: "adaptive" } as unknown as Anthropic.Messages.ThinkingConfigParam,
+    // Запас под размышление + полный текст, чтобы ответ не обрезался по лимиту.
+    max_tokens: Math.max(rest.max_tokens ?? 0, 8000),
   };
 }
 
