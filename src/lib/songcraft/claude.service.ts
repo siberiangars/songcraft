@@ -24,6 +24,21 @@ function songwriterModel() {
   return TEXT_AI_PROVIDER() === "deepseek" ? DEEPSEEK_MODEL() : ANTHROPIC_MODEL();
 }
 
+// Современные модели Anthropic (Sonnet 5, Opus 4.7/4.8) не принимают temperature/
+// top_p/top_k — вернут 400. Убираем их и явно выключаем thinking, чтобы структурные
+// ответы (JSON, тексты с тегами) не съедались бюджетом max_tokens. Вариативность
+// трёх версий держится на промпт-блюпринтах, а не на temperature.
+function toAnthropicRequest(
+  request: Anthropic.Messages.MessageCreateParamsNonStreaming
+): Anthropic.Messages.MessageCreateParamsNonStreaming {
+  const { temperature: _t, top_p: _p, top_k: _k, ...rest } = request;
+  return {
+    ...rest,
+    model: ANTHROPIC_MODEL(),
+    thinking: { type: "disabled" },
+  };
+}
+
 const DEEPSEEK_CLAUDE_COACH = `
 DeepSeek execution discipline:
 - Work with Claude-level obedience to structure: never add explanations, markdown fences, reports, "вот финальная версия", or any service text.
@@ -51,12 +66,12 @@ function textAiSystem(system?: Anthropic.Messages.MessageCreateParamsNonStreamin
 async function createMessage(input: Anthropic.Messages.MessageCreateParamsNonStreaming) {
   const request = { ...input, system: textAiSystem(input.system) };
   if (TEXT_AI_PROVIDER() !== "deepseek") {
-    return getAnthropicClient().messages.create({ ...request, model: ANTHROPIC_MODEL() });
+    return getAnthropicClient().messages.create(toAnthropicRequest(request));
   }
 
   if (!DEEPSEEK_API_KEY()) {
     logger.warn("DeepSeek is selected but the API key is missing; using Anthropic fallback");
-    return getAnthropicClient().messages.create({ ...request, model: ANTHROPIC_MODEL() });
+    return getAnthropicClient().messages.create(toAnthropicRequest(request));
   }
 
   try {
@@ -71,7 +86,7 @@ async function createMessage(input: Anthropic.Messages.MessageCreateParamsNonStr
       model: DEEPSEEK_MODEL(),
       error: String(error),
     });
-    return getAnthropicClient().messages.create({ ...request, model: ANTHROPIC_MODEL() });
+    return getAnthropicClient().messages.create(toAnthropicRequest(request));
   }
 }
 
