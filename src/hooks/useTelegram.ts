@@ -154,10 +154,16 @@ function initializeTelegram() {
       const root = document.documentElement;
       const safe = webApp.safeAreaInset;
       const contentSafe = webApp.contentSafeAreaInset;
-      root.style.setProperty("--tg-safe-area-inset-top", `${safe?.top ?? 0}px`);
-      root.style.setProperty("--tg-content-safe-area-inset-top", `${contentSafe?.top ?? 0}px`);
-      root.style.setProperty("--tg-safe-area-inset-bottom", `${safe?.bottom ?? 0}px`);
-      root.style.setProperty("--tg-content-safe-area-inset-bottom", `${contentSafe?.bottom ?? 0}px`);
+      // Не перезаписываем нулём: если SDK ещё не вернул значение (undefined),
+      // Telegram мог уже выставить CSS-переменную самостоятельно — оставляем её.
+      if (safe != null) {
+        root.style.setProperty("--tg-safe-area-inset-top", `${safe.top ?? 0}px`);
+        root.style.setProperty("--tg-safe-area-inset-bottom", `${safe.bottom ?? 0}px`);
+      }
+      if (contentSafe != null) {
+        root.style.setProperty("--tg-content-safe-area-inset-top", `${contentSafe.top ?? 0}px`);
+        root.style.setProperty("--tg-content-safe-area-inset-bottom", `${contentSafe.bottom ?? 0}px`);
+      }
     };
 
     const expand = () => {
@@ -186,6 +192,10 @@ function initializeTelegram() {
       window.setTimeout(expand, 300);
       window.setTimeout(expand, 1200);
     }
+    // Повторная синхронизация: SDK может вернуть правильные inset-значения
+    // позже (особенно при открытии из списка чатов, где появляется шапка «Закрыть»).
+    window.setTimeout(syncSafeArea, 400);
+    window.setTimeout(syncSafeArea, 1000);
     const onViewportChanged = () => {
       syncSafeArea();
       if (shouldExpand && !webApp.isExpanded) expand();
