@@ -625,6 +625,7 @@ async function processGeneration(orderId: number) {
         lyrics,
         recipientName: order.recipientName,
         recipientPronunciation: order.recipientPronunciation,
+        pronunciationHints: generationSettings.pronunciationHints,
       });
 
       const stylePrompt = clampSunoStylePrompt(
